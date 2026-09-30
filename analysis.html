@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analysis Progress — DVR/NVR Forensic Recovery Tool</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<div id="toast-region" aria-live="polite" aria-atomic="false" aria-label="Notifications"></div>
+<div id="topbar-slot"></div>
+<div id="header-slot"></div>
+<div id="dataset-bar-slot"></div>
+
+<main id="main-content" class="page-content" tabindex="-1">
+  <div class="container">
+
+    <div id="breadcrumb-slot"></div>
+
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 id="page-title">Analysis in Progress</h1>
+        <p id="case-id-display" class="text-muted font-mono" style="font-size:var(--text-xs);margin-top:4px">Case ID: —</p>
+      </div>
+      <div style="display:flex;gap:var(--space-4);align-items:center">
+        <div class="readonly-banner">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Read-only mode
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-cancel" onclick="cancelAnalysis()">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Simulated run banner -->
+    <div id="simulated-banner" class="card mb-6" role="alert" style="border:2px solid var(--color-warning);background:rgba(217,119,6,0.08);display:flex;align-items:flex-start;gap:var(--space-3)" aria-live="polite">
+      <span aria-hidden="true" style="font-size:22px;flex-shrink:0">⚠️</span>
+      <div>
+        <strong style="color:var(--color-warning);display:block;margin-bottom:4px">SIMULATED RUN — No real acquisition performed</strong>
+        <span style="font-size:var(--text-xs);color:var(--color-text-muted)">
+          No evidence image file was read. All timings, frame counts, hash values, and tamper findings shown below
+          are synthetic demonstration data. Do not rely on these numbers as forensic evidence.
+          To perform a real acquisition, connect the backend to a live evidence image path.
+        </span>
+      </div>
+    </div>
+
+    <!-- Hash verification block -->
+    <div class="card mb-6" aria-labelledby="hash-section-heading">
+      <h2 id="hash-section-heading" style="font-size:var(--text-md);margin-bottom:var(--space-4)">Evidence Integrity</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6)">
+        <div>
+          <p class="form-label mb-2">SHA-256 <em>before</em> analysis</p>
+          <div class="hash-block">
+            <span class="hash-value" id="hash-before" aria-live="polite">Computing…</span>
+            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('hash-before').textContent, this)">Copy</button>
+          </div>
+        </div>
+        <div>
+          <p class="form-label mb-2">SHA-256 <em>after</em> analysis</p>
+          <div class="hash-block">
+            <span class="hash-value" id="hash-after" aria-live="polite">Pending…</span>
+            <button class="copy-btn" id="copy-after-btn" onclick="copyToClipboard(document.getElementById('hash-after').textContent, this)" disabled>Copy</button>
+          </div>
+        </div>
+      </div>
+      <div id="hash-status" class="mt-4" aria-live="polite"></div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="mb-6">
+      <div class="flex justify-between items-center mb-2">
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted)">
+          Overall progress
+        </span>
+        <span style="font-size:var(--text-xs);font-family:monospace" id="elapsed-display">00:00</span>
+      </div>
+      <div class="progress-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="main-progress" aria-label="Analysis progress">
+        <div class="progress-bar-fill" id="main-progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Analysis steps -->
+    <div class="analysis-stepper" id="analysis-stepper" aria-label="Analysis pipeline steps" aria-live="polite" aria-busy="true">
+
+      <div class="analysis-step" id="astep-acquire" role="status" aria-label="Acquire Image: pending">
+        <div class="analysis-step-icon" aria-hidden="true">📥</div>
+        <div class="analysis-step-content">
+          <div class="analysis-step-title">Acquire Image</div>
+          <div class="analysis-step-detail">Block-level read of evidence image</div>
+        </div>
+        <div class="analysis-step-time" id="time-acquire"></div>
+      </div>
+
+      <div class="analysis-step" id="astep-identify" role="status" aria-label="Identify Format: pending">
+        <div class="analysis-step-icon" aria-hidden="true">🔎</div>
+        <div class="analysis-step-content">
+          <div class="analysis-step-title">Identify Format</div>
+          <div class="analysis-step-detail">Detect DVR/NVR proprietary format</div>
+        </div>
+        <div class="analysis-step-time" id="time-identify"></div>
+      </div>
+
+      <div class="analysis-step" id="astep-index" role="status" aria-label="Index-based Recovery: pending">
+        <div class="analysis-step-icon" aria-hidden="true">📋</div>
+        <div class="analysis-step-content">
+          <div class="analysis-step-title">Index-based Recovery</div>
+          <div class="analysis-step-detail">Parse file allocation tables and index structures</div>
+        </div>
+        <div class="analysis-step-time" id="time-index"></div>
+      </div>
+
+      <div class="analysis-step" id="astep-carve" role="status" aria-label="Carve-based Recovery: pending">
+        <div class="analysis-step-icon" aria-hidden="true">⛏️</div>
+        <div class="analysis-step-content">
+          <div class="analysis-step-title">Carve-based Recovery</div>
+          <div class="analysis-step-detail">Signature-based carving for deleted / overwritten frames</div>
+        </div>
+        <div class="analysis-step-time" id="time-carve"></div>
+      </div>
+
+      <div class="analysis-step" id="astep-checks" role="status" aria-label="Tamper Checks: pending">
+        <div class="analysis-step-icon" aria-hidden="true">🛡️</div>
+        <div class="analysis-step-content">
+          <div class="analysis-step-title">Tamper Checks</div>
+          <div class="analysis-step-detail">Hash verification, discontinuity and anomaly detection</div>
+        </div>
+        <div class="analysis-step-time" id="time-checks"></div>
+      </div>
+
+      <div class="analysis-step" id="astep-report" role="status" aria-label="Generate Report: pending">
+        <div class="analysis-step-icon" aria-hidden="true">📄</div>
+        <div class="analysis-step-content">
+          <div class="analysis-step-title">Generate Report</div>
+          <div class="analysis-step-detail">Build court-admissible PDF with chain of custody</div>
+        </div>
+        <div class="analysis-step-time" id="time-report"></div>
+      </div>
+
+    </div>
+
+    <!-- Complete / Error state -->
+    <div id="analysis-done" class="hidden">
+      <div class="card" style="margin-top:var(--space-6);text-align:center">
+        <div style="font-size:48px;margin-bottom:var(--space-4)" id="done-icon">✅</div>
+        <h2 id="done-title">Analysis Complete</h2>
+        <p class="text-muted mt-4 mb-6" id="done-desc">All steps completed successfully.</p>
+        <div style="display:flex;gap:var(--space-4);justify-content:center;flex-wrap:wrap">
+          <a id="btn-view-results" href="#" class="btn btn-primary">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+            View Results
+          </a>
+          <a id="btn-view-report" href="#" class="btn btn-secondary">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13l2 2 4-4"/></svg>
+            View Report
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div id="footer-slot"></div>
+
+<script src="js/app.js"></script>
+<script>
+(async () => {
+  await initApp('cases');
+
+  const params = new URLSearchParams(location.search);
+  const caseId = params.get('case') || 'DEMO-001';
+  const isDemo = params.has('demo') || true;
+
+  document.getElementById('case-id-display').textContent = `Case ID: ${caseId}`;
+  document.getElementById('breadcrumb-slot').innerHTML = buildBreadcrumb([
+    { href: 'index.html', label: 'Home' },
+    { href: 'cases.html', label: 'Cases' },
+    { href: `analysis.html?case=${caseId}`, label: caseId }
+  ]);
+  document.getElementById('dataset-bar-slot').innerHTML = buildDatasetBar('SYNTHETIC');
+
+  // Set up results links
+  document.getElementById('btn-view-results').href = `results.html?case=${caseId}`;
+  document.getElementById('btn-view-report').href = `report.html?case=${caseId}`;
+
+  // Simulated analysis pipeline
+  const DEMO_HASH = 'a3f4e8c1d9b2e7a0f5c8d3b6e1a4f7c0d9b2e5a8f1c4d7b0e3a6f9c2d5b8e1a4';
+  const steps = [
+    { id: 'acquire', icon: '📥', duration: 1800, detail: 'Reading 4.2 GB @ 450 MB/s' },
+    { id: 'identify', icon: '🔎', duration: 800, detail: 'Format: Hikvision H.264 DVR v2.3' },
+    { id: 'index', icon: '📋', duration: 2500, detail: '18,432 index entries parsed' },
+    { id: 'carve', icon: '⛏️', duration: 3200, detail: '2,847 frames carved from unallocated space' },
+    { id: 'checks', icon: '🛡️', duration: 1200, detail: '3 discontinuities found, 3 tamper flags raised' },
+    { id: 'report', icon: '📄', duration: 600, detail: 'PDF generated: case-report.pdf' }
+  ];
+
+  let elapsed = 0;
+  const startTime = Date.now();
+
+  // Elapsed timer
+  const elapsedInterval = setInterval(() => {
+    const secs = Math.floor((Date.now() - startTime) / 1000);
+    const m = String(Math.floor(secs/60)).padStart(2,'0');
+    const s = String(secs % 60).padStart(2,'0');
+    document.getElementById('elapsed-display').textContent = `${m}:${s}`;
+  }, 1000);
+
+  // Set before-hash
+  setTimeout(() => {
+    document.getElementById('hash-before').textContent = DEMO_HASH;
+  }, 500);
+
+  // Run steps
+  let totalDuration = steps.reduce((s, x) => s + x.duration, 0);
+  let doneTime = 0;
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+    const el = document.getElementById(`astep-${step.id}`);
+    const timeEl = document.getElementById(`time-${step.id}`);
+
+    // Mark active
+    el.classList.add('active');
+    el.setAttribute('aria-label', `${el.querySelector('.analysis-step-title').textContent}: in progress`);
+    const icon = el.querySelector('.analysis-step-icon');
+    icon.innerHTML = '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>';
+
+    await delay(step.duration);
+    doneTime += step.duration;
+
+    // Mark done
+    el.classList.remove('active');
+    el.classList.add('done');
+    el.setAttribute('aria-label', `${el.querySelector('.analysis-step-title').textContent}: done`);
+    icon.textContent = '✅';
+    el.querySelector('.analysis-step-detail').textContent = step.detail;
+    const stepSecs = Math.round(step.duration / 1000);
+    timeEl.textContent = `${stepSecs}s`;
+
+    // Update progress
+    const pct = Math.round((doneTime / totalDuration) * 100);
+    document.getElementById('main-progress').setAttribute('aria-valuenow', pct);
+    document.getElementById('main-progress-fill').style.width = pct + '%';
+  }
+
+  // Finalise
+  clearInterval(elapsedInterval);
+  document.getElementById('analysis-stepper').setAttribute('aria-busy', 'false');
+  document.getElementById('hash-after').textContent = DEMO_HASH;
+  document.getElementById('copy-after-btn').disabled = false;
+  document.getElementById('hash-status').innerHTML = `
+    <div class="status-chip status-success">
+      <span aria-hidden="true">✅</span> Hash match — evidence integrity verified
+    </div>`;
+
+  document.getElementById('analysis-done').classList.remove('hidden');
+  document.getElementById('page-title').textContent = 'Analysis Complete';
+  toast('Analysis complete — results are ready to view.', 'success', 6000);
+})();
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function cancelAnalysis() {
+  confirmDialog(
+    'Are you sure you want to cancel? Partial results will be discarded.',
+    () => { toast('Analysis cancelled.', 'warning'); window.location.href = 'cases.html'; }
+  );
+}
+
+// CSS for spinner
+const style = document.createElement('style');
+style.textContent = '@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }';
+document.head.appendChild(style);
+</script>
+</body>
+</html>

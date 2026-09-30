@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Case — DVR/NVR Forensic Recovery Tool</title>
+  <meta name="description" content="Start a new forensic case for DVR/NVR evidence recovery.">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<div id="toast-region" aria-live="polite" aria-atomic="false" aria-label="Notifications"></div>
+<div id="topbar-slot"></div>
+<div id="header-slot"></div>
+<div id="dataset-bar-slot"></div>
+
+<main id="main-content" class="page-content" tabindex="-1">
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <div id="breadcrumb-slot"></div>
+
+    <div class="flex justify-between items-center mb-6">
+      <h1>New Case</h1>
+      <div class="readonly-banner">
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Read-only acquisition mode
+      </div>
+    </div>
+
+    <!-- Wizard Step Indicator -->
+    <div class="wizard-stepper" role="list" aria-label="Case creation steps">
+      <div class="wizard-step active" id="wz-step-1" role="listitem" aria-label="Step 1: Case Details (current)">
+        <div class="wizard-step-circle" id="wz-circle-1" aria-hidden="true">1</div>
+        <div class="wizard-step-label">Case Details</div>
+      </div>
+      <div class="wizard-step" id="wz-step-2" role="listitem" aria-label="Step 2: Evidence Image">
+        <div class="wizard-step-circle" id="wz-circle-2" aria-hidden="true">2</div>
+        <div class="wizard-step-label">Evidence Image</div>
+      </div>
+      <div class="wizard-step" id="wz-step-3" role="listitem" aria-label="Step 3: Review">
+        <div class="wizard-step-circle" id="wz-circle-3" aria-hidden="true">3</div>
+        <div class="wizard-step-label">Review</div>
+      </div>
+    </div>
+
+    <div id="wizard-body">
+
+      <!-- ========= STEP 1 ========= -->
+      <div id="step-1" class="card" aria-labelledby="step1-heading">
+        <h2 id="step1-heading" class="mb-6" style="font-size:var(--text-xl)">Case Details</h2>
+        <form id="form-step1" novalidate>
+          <div class="grid-12" style="gap:var(--space-6)">
+
+            <div class="form-group" style="grid-column:1/7">
+              <label class="form-label" for="case-id">Case ID <span class="required" aria-label="required">*</span></label>
+              <input class="form-input" id="case-id" name="caseId" type="text" placeholder="e.g. CY-2026-12345" autocomplete="off" required aria-describedby="case-id-hint">
+              <span class="form-hint" id="case-id-hint">Auto-generated if left blank</span>
+              <span class="form-error hidden" id="case-id-error" role="alert" aria-live="polite">
+                <span aria-hidden="true">❌</span> This field is required.
+              </span>
+            </div>
+
+            <div class="form-group" style="grid-column:7/13">
+              <label class="form-label" for="fir-number">FIR Number <span class="required" aria-label="required">*</span></label>
+              <input class="form-input" id="fir-number" name="firNumber" type="text" placeholder="e.g. 1234/2026" required aria-describedby="fir-error">
+              <span class="form-error hidden" id="fir-error" role="alert" aria-live="polite">
+                <span aria-hidden="true">❌</span> This field is required.
+              </span>
+            </div>
+
+            <div class="form-group" style="grid-column:1/13">
+              <label class="form-label" for="case-name">Case Name / Description <span class="required" aria-label="required">*</span></label>
+              <input class="form-input" id="case-name" name="caseName" type="text" placeholder="Brief description of the case" required aria-describedby="case-name-error">
+              <span class="form-error hidden" id="case-name-error" role="alert" aria-live="polite">
+                <span aria-hidden="true">❌</span> This field is required.
+              </span>
+            </div>
+
+            <div class="form-group" style="grid-column:1/7">
+              <label class="form-label" for="court">Court / Jurisdiction <span class="required" aria-label="required">*</span></label>
+              <input class="form-input" id="court" name="court" type="text" placeholder="e.g. Sessions Court, Delhi" required aria-describedby="court-error">
+              <span class="form-error hidden" id="court-error" role="alert" aria-live="polite">
+                <span aria-hidden="true">❌</span> This field is required.
+              </span>
+            </div>
+
+            <div class="form-group" style="grid-column:7/13">
+              <label class="form-label" for="seize-date">Date of Seizure <span class="required" aria-label="required">*</span></label>
+              <input class="form-input" id="seize-date" name="seizeDate" type="date" required aria-describedby="seize-date-error">
+              <span class="form-error hidden" id="seize-date-error" role="alert" aria-live="polite">
+                <span aria-hidden="true">❌</span> This field is required.
+              </span>
+            </div>
+
+            <div class="form-group" style="grid-column:1/7">
+              <label class="form-label" for="officer">Investigating Officer <span class="required" aria-label="required">*</span></label>
+              <input class="form-input" id="officer" name="officer" type="text" placeholder="Full name and designation" required aria-describedby="officer-error">
+              <span class="form-error hidden" id="officer-error" role="alert" aria-live="polite">
+                <span aria-hidden="true">❌</span> This field is required.
+              </span>
+            </div>
+
+            <div class="form-group" style="grid-column:7/13">
+              <label class="form-label" for="unit">Unit / Police Station <span class="required" aria-label="required">*</span></label>
+              <input class="form-input" id="unit" name="unit" type="text" placeholder="e.g. Cyber Cell, CP Delhi" required aria-describedby="unit-error">
+              <span class="form-error hidden" id="unit-error" role="alert" aria-live="polite">
+                <span aria-hidden="true">❌</span> This field is required.
+              </span>
+            </div>
+
+            <div class="form-group" style="grid-column:1/7">
+              <label class="form-label" for="location">Location of Evidence</label>
+              <input class="form-input" id="location" name="location" type="text" placeholder="Address where DVR/NVR was seized">
+            </div>
+
+            <div class="form-group" style="grid-column:7/13">
+              <label class="form-label" for="suspect">Suspect / Accused <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+              <input class="form-input" id="suspect" name="suspect" type="text" placeholder="Name (if applicable)">
+            </div>
+
+          </div>
+
+          <div class="flex justify-between mt-4" style="padding-top:var(--space-6);border-top:1px solid var(--color-border)">
+            <a href="index.html" class="btn btn-ghost">Cancel</a>
+            <button type="submit" class="btn btn-primary" id="btn-next-1">
+              Next: Evidence Image
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ========= STEP 2 ========= -->
+      <div id="step-2" class="card hidden" aria-labelledby="step2-heading">
+        <h2 id="step2-heading" class="mb-6" style="font-size:var(--text-xl)">Evidence Image</h2>
+        <form id="form-step2" novalidate>
+
+          <div class="form-group mb-6">
+            <label class="form-label" for="dataset-label">Dataset Label <span class="required" aria-label="required">*</span></label>
+            <select class="form-select" id="dataset-label" name="datasetLabel" required aria-describedby="dataset-hint dataset-error">
+              <option value="">Select a label…</option>
+              <option value="SYNTHETIC">SYNTHETIC — Generated or simulated data</option>
+              <option value="PUBLIC-EXPORT">PUBLIC-EXPORT — Publicly released dataset</option>
+              <option value="REAL-DISK">REAL-DISK — Actual seized evidence disk</option>
+            </select>
+            <span class="form-hint" id="dataset-hint">Required. Displayed on every page and report.</span>
+            <span class="form-error hidden" id="dataset-error" role="alert" aria-live="polite">
+              <span aria-hidden="true">❌</span> Please select a dataset label.
+            </span>
+          </div>
+
+          <div class="form-group mb-6">
+            <label class="form-label" for="image-source">Evidence Image Source <span class="required" aria-label="required">*</span></label>
+            <select class="form-select" id="image-source" name="imageSource" required aria-describedby="image-source-error">
+              <option value="">Select source type…</option>
+              <option value="local">Local file path</option>
+              <option value="url">Remote URL (HTTP/FTP)</option>
+              <option value="device">Direct device (block device path)</option>
+            </select>
+            <span class="form-error hidden" id="image-source-error" role="alert" aria-live="polite">
+              <span aria-hidden="true">❌</span> Please select an image source.
+            </span>
+          </div>
+
+          <!-- File upload zone (issue #4) -->
+          <div class="form-group mb-3">
+            <label class="form-label">Upload Evidence File <span style="font-weight:400;text-transform:none;letter-spacing:0">(browser demo only)</span></label>
+            <div id="upload-zone"
+              role="button" tabindex="0" aria-label="Drop evidence image here or click to select file"
+              style="border:2px dashed var(--color-border);border-radius:var(--radius-card);padding:var(--space-6);text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s"
+              onclick="document.getElementById('file-input').click()"
+              onkeydown="if(event.key==='Enter'||event.key===' ')document.getElementById('file-input').click()"
+              ondragover="event.preventDefault();this.style.borderColor='var(--color-primary)';this.style.background='rgba(var(--color-primary-rgb,59,130,246),0.06)'"
+              ondragleave="this.style.borderColor='';this.style.background=''"
+              ondrop="handleFileDrop(event)">
+              <div aria-hidden="true" style="font-size:32px;margin-bottom:var(--space-2)">📁</div>
+              <p style="font-size:var(--text-sm);font-weight:600">Drag &amp; drop an image file here</p>
+              <p style="font-size:var(--text-xs);color:var(--color-text-muted);margin-top:4px">or click to browse &mdash; .img, .dd, .raw, .bin, .E01</p>
+              <div id="upload-chip" style="display:none;margin-top:var(--space-3)">
+                <span class="status-chip status-success"><span aria-hidden="true">✅</span> <span id="upload-filename"></span></span>
+              </div>
+            </div>
+            <input type="file" id="file-input" accept=".img,.dd,.raw,.bin,.E01,.e01" style="display:none" onchange="handleFileSelect(this)">
+            <span class="form-hint" style="margin-top:var(--space-2);display:block">Selecting a file populates the path field below with the filename.</span>
+          </div>
+
+          <div class="form-group mb-6">
+            <label class="form-label" for="image-path">Image File Path or URL <span class="required" aria-label="required">*</span></label>
+            <input class="form-input font-mono" id="image-path" name="imagePath" type="text"
+              placeholder="/mnt/evidence/dvr.img  or  ftp://server/file.img" required aria-describedby="image-path-hint image-path-error">
+            <span class="form-hint" id="image-path-hint">Absolute server path or URL. For real acquisitions the backend must have access to this path.</span>
+            <span class="form-error hidden" id="image-path-error" role="alert" aria-live="polite">
+              <span aria-hidden="true">❌</span> This field is required.
+            </span>
+          </div>
+
+          <div class="form-group mb-6">
+            <label class="form-label" for="image-hash">Expected SHA-256 <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+            <input class="form-input font-mono" id="image-hash" name="imageHash" type="text"
+              placeholder="64 hex characters" maxlength="64" autocomplete="off" aria-describedby="image-hash-hint image-hash-error"
+              oninput="validateHashLive(this)" onblur="validateHashLive(this)">
+            <span class="form-hint" id="image-hash-hint">If provided, acquisition will verify the image hash matches.</span>
+            <span class="form-error hidden" id="image-hash-error" role="alert" aria-live="polite">
+              <span aria-hidden="true">❌</span> SHA-256 must be exactly 64 hexadecimal characters (0–9, a–f).
+            </span>
+          </div>
+
+          <div class="form-group mb-6">
+            <label class="form-label" for="vendor">DVR/NVR Vendor <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+            <select class="form-select" id="vendor" name="vendor">
+              <option value="">Auto-detect</option>
+              <option value="hikvision">Hikvision</option>
+              <option value="dahua">Dahua</option>
+              <option value="cp-plus">CP Plus</option>
+              <option value="axis">Axis</option>
+              <option value="hanwha">Hanwha</option>
+              <option value="bosch">Bosch</option>
+              <option value="other">Other / Unknown</option>
+            </select>
+          </div>
+
+          <div class="flex justify-between" style="padding-top:var(--space-6);border-top:1px solid var(--color-border)">
+            <button type="button" class="btn btn-secondary" onclick="goStep(1)">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Back
+            </button>
+            <button type="submit" class="btn btn-primary" id="btn-next-2">
+              Next: Review
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ========= STEP 3 ========= -->
+      <div id="step-3" class="card hidden" aria-labelledby="step3-heading">
+        <h2 id="step3-heading" class="mb-4" style="font-size:var(--text-xl)">Review and Confirm</h2>
+        <p class="text-muted mb-6">Please verify all details before starting analysis. This action cannot be undone.</p>
+
+        <div class="readonly-banner mb-6">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Analysis will run in <strong>read-only mode</strong>. The evidence image will never be modified.
+        </div>
+
+        <div class="grid-12 mb-6" style="gap:var(--space-6)">
+          <div style="grid-column:1/7">
+            <h3 class="mb-4" style="color:var(--color-primary)">Case Details</h3>
+            <dl id="review-case-details" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)"></dl>
+          </div>
+          <div style="grid-column:7/13">
+            <h3 class="mb-4" style="color:var(--color-primary)">Evidence Image</h3>
+            <dl id="review-image-details" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)"></dl>
+          </div>
+        </div>
+
+        <div id="review-hash-block" class="mb-6" style="display:none">
+          <p class="form-label mb-2">Expected SHA-256</p>
+          <div class="hash-block">
+            <span class="hash-value" id="review-hash-value">—</span>
+            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('review-hash-value').textContent, this)">Copy</button>
+          </div>
+        </div>
+
+        <div class="flex justify-between" style="padding-top:var(--space-6);border-top:1px solid var(--color-border)">
+          <button type="button" class="btn btn-secondary" onclick="goStep(2)">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back
+          </button>
+          <button type="button" class="btn btn-accent" id="btn-submit" onclick="submitCase()">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            Start Analysis
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /wizard-body -->
+  </div>
+</main>
+
+<div id="footer-slot"></div>
+
+<script src="js/app.js"></script>
+<script>
+(async () => {
+  await initApp('newCase');
+  document.getElementById('breadcrumb-slot').innerHTML = buildBreadcrumb([
+    { href: 'index.html', label: 'Home' },
+    { href: 'new-case.html', label: 'New Case' }
+  ]);
+  document.getElementById('dataset-bar-slot').innerHTML = buildDatasetBar('SYNTHETIC');
+})();
+
+let currentStep = 1;
+const caseData = {};
+
+function goStep(n) {
+  document.getElementById(`step-${currentStep}`).classList.add('hidden');
+  document.getElementById(`step-${n}`).classList.remove('hidden');
+
+  // Update stepper
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(`wz-step-${i}`);
+    const circle = document.getElementById(`wz-circle-${i}`);
+    el.classList.remove('active', 'done');
+    if (i < n) { el.classList.add('done'); circle.innerHTML = '✓'; }
+    else if (i === n) { el.classList.add('active'); circle.textContent = i; }
+    else { circle.textContent = i; }
+  }
+
+  currentStep = n;
+  // Focus the heading
+  document.getElementById(`step${n}-heading`)?.focus();
+  document.getElementById(`step${n}-heading`)?.setAttribute('tabindex', '-1');
+}
+
+function validateStep1() {
+  const fields = ['case-id','fir-number','case-name','court','seize-date','officer','unit'];
+  let valid = true;
+  fields.forEach(id => {
+    const input = document.getElementById(id);
+    const error = document.getElementById(`${id}-error`);
+    if (!input || !error) return;
+    if (input.required && !input.value.trim()) {
+      input.classList.add('error');
+      error.classList.remove('hidden');
+      valid = false;
+    } else {
+      input.classList.remove('error');
+      error.classList.add('hidden');
+    }
+  });
+  return valid;
+}
+
+function validateStep2() {
+  let valid = true;
+  // Dataset label
+  const dl = document.getElementById('dataset-label');
+  const dle = document.getElementById('dataset-error');
+  if (!dl.value) { dl.classList.add('error'); dle.classList.remove('hidden'); valid = false; }
+  else { dl.classList.remove('error'); dle.classList.add('hidden'); }
+
+  // Image source
+  const is = document.getElementById('image-source');
+  const ise = document.getElementById('image-source-error');
+  if (!is.value) { is.classList.add('error'); ise.classList.remove('hidden'); valid = false; }
+  else { is.classList.remove('error'); ise.classList.add('hidden'); }
+
+  // Image path
+  const ip = document.getElementById('image-path');
+  const ipe = document.getElementById('image-path-error');
+  if (!ip.value.trim()) { ip.classList.add('error'); ipe.classList.remove('hidden'); valid = false; }
+  else { ip.classList.remove('error'); ipe.classList.add('hidden'); }
+
+  // Hash (if provided)
+  const ih = document.getElementById('image-hash');
+  const ihe = document.getElementById('image-hash-error');
+  if (ih.value && !/^[0-9a-fA-F]{64}$/.test(ih.value)) {
+    ih.classList.add('error'); ihe.classList.remove('hidden'); valid = false;
+  } else { ih.classList.remove('error'); ihe.classList.add('hidden'); }
+
+  return valid;
+}
+
+function buildReviewRow(label, value) {
+  return `<dt style="font-size:var(--text-xs);color:var(--color-text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em">${label}</dt>
+          <dd style="font-size:var(--text-sm);font-weight:500">${value || '—'}</dd>`;
+}
+
+function populateReview() {
+  // Collect all data
+  const fields1 = ['case-id','fir-number','case-name','court','seize-date','officer','unit','location','suspect'];
+  fields1.forEach(id => { caseData[id] = document.getElementById(id)?.value || ''; });
+  const fields2 = ['dataset-label','image-source','image-path','image-hash','vendor'];
+  fields2.forEach(id => { caseData[id] = document.getElementById(id)?.value || ''; });
+
+  document.getElementById('review-case-details').innerHTML = [
+    buildReviewRow('Case ID', caseData['case-id'] || '(Auto-generated)'),
+    buildReviewRow('FIR Number', caseData['fir-number']),
+    buildReviewRow('Case Name', caseData['case-name']),
+    buildReviewRow('Court', caseData['court']),
+    buildReviewRow('Officer', caseData['officer']),
+    buildReviewRow('Unit', caseData['unit']),
+    buildReviewRow('Date Seized', caseData['seize-date']),
+    buildReviewRow('Location', caseData['location'] || '—'),
+  ].join('');
+
+  document.getElementById('review-image-details').innerHTML = [
+    buildReviewRow('Dataset Label', `<span class="badge ${caseData['dataset-label']==='SYNTHETIC'?'badge-synthetic':caseData['dataset-label']==='REAL-DISK'?'badge-real':'badge-public'}">${caseData['dataset-label']}</span>`),
+    buildReviewRow('Source', caseData['image-source']),
+    buildReviewRow('Image Path', `<span class="font-mono" style="font-size:11px;word-break:break-all">${caseData['image-path']}</span>`),
+    buildReviewRow('Vendor', caseData['vendor'] || 'Auto-detect'),
+  ].join('');
+
+  if (caseData['image-hash']) {
+    document.getElementById('review-hash-block').style.display = '';
+    document.getElementById('review-hash-value').textContent = caseData['image-hash'];
+  }
+}
+
+// Form submit handlers
+document.getElementById('form-step1').addEventListener('submit', e => {
+  e.preventDefault();
+  if (validateStep1()) goStep(2);
+  else {
+    const firstErr = document.querySelector('.form-input.error');
+    firstErr?.focus();
+    toast('Please fix the errors above before continuing.', 'error');
+  }
+});
+
+document.getElementById('form-step2').addEventListener('submit', e => {
+  e.preventDefault();
+  if (validateStep2()) { populateReview(); goStep(3); }
+  else {
+    const firstErr = document.querySelector('.form-select.error, .form-input.error');
+    firstErr?.focus();
+    toast('Please fix the errors above before continuing.', 'error');
+  }
+});
+
+// Issue #3: live SHA-256 field validation
+function validateHashLive(input) {
+  const err = document.getElementById('image-hash-error');
+  if (input.value && !/^[0-9a-fA-F]{64}$/.test(input.value)) {
+    input.classList.add('error');
+    err.classList.remove('hidden');
+  } else {
+    input.classList.remove('error');
+    err.classList.add('hidden');
+  }
+}
+
+// Issue #4: file upload handlers
+function handleFileSelect(input) {
+  if (input.files && input.files[0]) applyFile(input.files[0]);
+}
+function handleFileDrop(event) {
+  event.preventDefault();
+  const zone = document.getElementById('upload-zone');
+  zone.style.borderColor = '';
+  zone.style.background = '';
+  const file = event.dataTransfer.files[0];
+  if (file) applyFile(file);
+}
+function applyFile(file) {
+  const pathInput = document.getElementById('image-path');
+  pathInput.value = file.name;
+  pathInput.classList.remove('error');
+  document.getElementById('image-path-error').classList.add('hidden');
+  document.getElementById('upload-filename').textContent = file.name;
+  document.getElementById('upload-chip').style.display = '';
+  toast(`File selected: ${file.name}`, 'success');
+}
+
+async function submitCase() {
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.innerHTML = '<span aria-hidden="true">⏳</span> Starting…';
+  try {
+    const payload = {
+      case_id: caseData['case-id'],
+      fir_number: caseData['fir-number'],
+      case_name: caseData['case-name'],
+      court: caseData['court'],
+      seize_date: caseData['seize-date'],
+      officer: caseData['officer'],
+      unit: caseData['unit'],
+      location: caseData['location'],
+      dataset_label: caseData['dataset-label'],
+      image_source: caseData['image-source'],
+      image_path: caseData['image-path'],
+      image_hash: caseData['image-hash'],
+      vendor: caseData['vendor']
+    };
+    const result = await api.post('/cases', payload);
+    window.location.href = `analysis.html?case=${result.case_id}`;
+  } catch {
+    // Demo mode
+    const demoId = `DEMO-${Date.now().toString(36).toUpperCase()}`;
+    window.location.href = `analysis.html?case=${demoId}&demo=1`;
+  }
+}
+</script>
+</body>
+</html>

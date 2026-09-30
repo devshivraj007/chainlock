@@ -1,0 +1,101 @@
+/* ============================================================
+   DESIGN TOKENS — SIH26150 DVR/NVR Forensic Recovery Tool
+   ============================================================ */
+
+:root {
+  /* --- Brand colours --- */
+  --color-primary:        #0B3D91; /* deep blue — WCAG AA on white */
+  --color-primary-hover:  #082C6C;
+  --color-accent:         #B34700; /* saffron — white text passes 4.5:1 */
+  --color-accent-light:   #FDE8D8; /* saffron tint bg for light accent */
+
+  /* --- Surfaces --- */
+  --color-surface:        #FFFFFF;
+  --color-page-bg:        #F5F7FA;
+  --color-border:         #D0D7E2;
+
+  /* --- Text --- */
+  --color-text:           #1F2937; /* on white 4.5:1 ✓ */
+  --color-text-muted:     #4B5563; /* on white 4.5:1 ✓ */
+  --color-text-inverse:   #FFFFFF;
+
+  /* --- Status (each paired with icon + label, NEVER colour-alone) --- */
+  --color-success:        #146C2E; /* on white 4.5:1 ✓ */
+  --color-success-bg:     #E8F5ED;
+  --color-warning:        #8A5A00; /* on #FFF4D6 4.5:1 ✓ */
+  --color-warning-bg:     #FFF4D6;
+  --color-error:          #B42318; /* on white 4.5:1 ✓ */
+  --color-error-bg:       #FDECEA;
+  --color-info:           #0B3D91; /* = primary */
+  --color-info-bg:        #E8EEF9;
+
+  /* --- Dataset badge colours --- */
+  --badge-synthetic-bg:   #E8EEF9;
+  --badge-synthetic-fg:   #0B3D91;
+  --badge-public-bg:      #FFF4D6;
+  --badge-public-fg:      #8A5A00;
+  --badge-real-bg:        #FDECEA;
+  --badge-real-fg:        #B42318;
+
+  /* --- Type scale (px → rem) --- */
+  --text-xs:   0.875rem; /* 14px */
+  --text-sm:   1rem;     /* 16px */
+  --text-md:   1.125rem; /* 18px */
+  --text-lg:   1.25rem;  /* 20px */
+  --text-xl:   1.5rem;   /* 24px */
+  --text-2xl:  2rem;     /* 32px */
+  --text-3xl:  2.5rem;   /* 40px */
+  --line-height-base:  1.5;
+  --line-height-hindi: 1.7;
+
+  /* --- Spacing scale --- */
+  --space-1:  0.25rem;  /*  4px */
+  --space-2:  0.5rem;   /*  8px */
+  --space-3:  0.75rem;  /* 12px */
+  --space-4:  1rem;     /* 16px */
+  --space-6:  1.5rem;   /* 24px */
+  --space-8:  2rem;     /* 32px */
+  --space-12: 3rem;     /* 48px */
+
+  /* --- Radii --- */
+  --radius-card:  8px;
+  --radius-input: 6px;
+  --radius-sm:    4px;
+
+  /* --- Shadows (soft, raised-card only) --- */
+  --shadow-card: 0 1px 4px rgba(11,61,145,0.08), 0 4px 16px rgba(11,61,145,0.06);
+  --shadow-sticky: 0 2px 8px rgba(11,61,145,0.12);
+
+  /* --- Focus ring --- */
+  --focus-ring: 0 0 0 3px #0B3D91;
+
+  /* --- Transition --- */
+  --transition-fast: 150ms ease;
+  --transition-med:  250ms ease;
+
+  /* --- Layout --- */
+  --max-width: 1200px;
+  --header-height: 64px;
+}
+
+/* High-contrast overrides (class applied to <html>) */
+html.high-contrast {
+  --color-primary:       #00008B;
+  --color-primary-hover: #000060;
+  --color-accent:        #8B2500;
+  --color-text:          #000000;
+  --color-text-muted:    #1a1a1a;
+  --color-border:        #000000;
+  --color-page-bg:       #ffffff;
+  --color-surface:       #ffffff;
+  --shadow-card:         0 0 0 2px #000;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

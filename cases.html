@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cases — DVR/NVR Forensic Recovery Tool</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<div id="toast-region" aria-live="polite" aria-atomic="false"></div>
+<div id="topbar-slot"></div>
+<div id="header-slot"></div>
+<div id="dataset-bar-slot"></div>
+
+<main id="main-content" class="page-content" tabindex="-1">
+  <div class="container">
+
+    <div id="breadcrumb-slot"></div>
+
+    <div class="flex justify-between items-center mb-6" style="flex-wrap:wrap;gap:var(--space-4)">
+      <h1>Cases</h1>
+      <a href="new-case.html" class="btn btn-accent">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        New Case
+      </a>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar" role="search" aria-label="Filter cases">
+      <input type="search" class="form-input" id="case-search" placeholder="Search by Case ID, Name or FIR…"
+             aria-label="Search cases" oninput="filterCases()" autocomplete="off">
+      <select class="form-select" id="status-filter" aria-label="Filter by status" onchange="filterCases()">
+        <option value="">All statuses</option>
+        <option value="complete">Complete</option>
+        <option value="running">Running</option>
+        <option value="pending">Pending</option>
+        <option value="error">Error</option>
+      </select>
+      <select class="form-select" id="sort-by" aria-label="Sort cases" onchange="filterCases()" style="max-width:200px">
+        <option value="date-desc">Date (newest first)</option>
+        <option value="date-asc">Date (oldest first)</option>
+        <option value="name-asc">Case Name A-Z</option>
+      </select>
+    </div>
+
+    <!-- Results count -->
+    <p id="results-count" class="text-muted mb-4" style="font-size:var(--text-xs)" aria-live="polite" aria-atomic="true">
+      Showing — cases
+    </p>
+
+    <!-- Table -->
+    <div class="table-container mb-6" id="cases-table-container" aria-live="polite"></div>
+
+    <!-- Empty state -->
+    <div id="cases-empty" class="empty-state hidden">
+      <div class="empty-state-icon">📂</div>
+      <h3>No cases found</h3>
+      <p>No cases match your search. Try different keywords or clear the filter.</p>
+      <button class="btn btn-secondary" onclick="clearFilters()">Clear filters</button>
+    </div>
+
+    <!-- Pagination -->
+    <nav class="pagination" aria-label="Cases pagination" id="pagination"></nav>
+
+  </div>
+</main>
+
+<div id="footer-slot"></div>
+
+<script src="js/app.js"></script>
+<script>
+// Demo data — 20 cases (deterministic, no permanently-stuck Running/Pending entries)
+const _STATUSES = ['complete','complete','complete','complete','complete','complete','complete','complete','error','error'];
+const ALL_CASES = Array.from({ length: 20 }, (_, i) => {
+  const names = ['Hikvision DVR Seizure','CP Plus NVR Investigation','Synthetic Test Image','Dahua System Analysis','Public Dataset Review','Mall CCTV Evidence','Bank ATM Footage','Traffic CCTV Case','Hotel Lobby Footage','Residential DVR'];
+  const status = _STATUSES[i % _STATUSES.length];
+  // Fixed dates so the list is stable between reloads
+  const daysAgo = (i * 3) + 1;
+  const created = new Date(Date.now() - daysAgo * 86400000).toISOString();
+  return {
+    id: `CASE-${String(i+1).padStart(4,'0')}`,
+    name: names[i % names.length],
+    fir: `${1000+i*17}/2026`,
+    officer: ['SI Rajan Kumar','ASI Priya Sharma','DSP Meena Pillai','SI Arun Singh'][i%4],
+    status,
+    created,
+    label: ['SYNTHETIC','SYNTHETIC','PUBLIC-EXPORT','REAL-DISK'][i%4]
+  };
+});
+
+let currentPage = 1;
+const PAGE_SIZE = 8;
+
+(async () => {
+  await initApp('cases');
+  document.getElementById('breadcrumb-slot').innerHTML = buildBreadcrumb([
+    { href: 'index.html', label: 'Home' },
+    { href: 'cases.html', label: 'Cases' }
+  ]);
+  document.getElementById('dataset-bar-slot').innerHTML = buildDatasetBar('SYNTHETIC');
+
+  // Check for search query from global search
+  const params = new URLSearchParams(location.search);
+  if (params.get('q')) document.getElementById('case-search').value = params.get('q');
+
+  filterCases();
+})();
+
+function filterCases() {
+  const q = document.getElementById('case-search').value.toLowerCase();
+  const status = document.getElementById('status-filter').value;
+  const sort = document.getElementById('sort-by').value;
+
+  let filtered = ALL_CASES.filter(c => {
+    const matchQ = !q || c.id.toLowerCase().includes(q) || c.name.toLowerCase().includes(q) || c.fir.includes(q);
+    const matchS = !status || c.status === status;
+    return matchQ && matchS;
+  });
+
+  if (sort === 'date-asc') filtered.sort((a,b) => a.created.localeCompare(b.created));
+  else if (sort === 'date-desc') filtered.sort((a,b) => b.created.localeCompare(a.created));
+  else if (sort === 'name-asc') filtered.sort((a,b) => a.name.localeCompare(b.name));
+
+  currentPage = 1;
+  renderCases(filtered);
+}
+
+function renderCases(data) {
+  const total = data.length;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = data.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('results-count').textContent = `Showing ${Math.min(page.length, total)} of ${total} cases`;
+
+  if (total === 0) {
+    document.getElementById('cases-table-container').innerHTML = '';
+    document.getElementById('cases-empty').classList.remove('hidden');
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+  document.getElementById('cases-empty').classList.add('hidden');
+
+  const statusBadge = s => {
+    const m = { complete: 'status-success ✅ Complete', running: 'status-info ⏳ Running', pending: 'status-warning 🕐 Pending', error: 'status-error ❌ Error' };
+    const [cls, icon, ...lbl] = (m[s] || 'status-info ❓').split(' ');
+    return `<span class="status-chip ${cls}"><span aria-hidden="true">${icon}</span> ${lbl.join(' ')}</span>`;
+  };
+  const labelBadge = l => `<span class="badge ${l==='SYNTHETIC'?'badge-synthetic':l==='REAL-DISK'?'badge-real':'badge-public'}">${l}</span>`;
+
+  document.getElementById('cases-table-container').innerHTML = `
+    <table>
+      <caption class="table-sr-caption">Cases list — page ${currentPage}</caption>
+      <thead>
+        <tr>
+          <th>Case ID</th>
+          <th>Name</th>
+          <th>FIR</th>
+          <th>Officer</th>
+          <th>Label</th>
+          <th>Created</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${page.map(c => `
+          <tr>
+            <td><a href="results.html?case=${c.id}" class="font-mono" style="font-size:11px">${c.id}</a></td>
+            <td style="font-weight:600">${c.name}</td>
+            <td class="font-mono" style="font-size:11px">${c.fir}</td>
+            <td style="font-size:var(--text-xs)">${c.officer}</td>
+            <td>${labelBadge(c.label)}</td>
+            <td style="font-size:11px;white-space:nowrap">${fmtDate(c.created, getCurrentLang())}</td>
+            <td>${statusBadge(c.status)}</td>
+            <td>
+              <div style="display:flex;gap:8px">
+                <a href="${c.status==='pending'?'analysis':'results'}.html?case=${c.id}" class="btn btn-ghost btn-sm" aria-label="View ${c.id}">View</a>
+                <a href="report.html?case=${c.id}" class="btn btn-ghost btn-sm" aria-label="Report for ${c.id}">Report</a>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+
+  // Pagination
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const pag = document.getElementById('pagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+  let pagHtml = `<button class="page-btn" ${currentPage===1?'disabled':''} onclick="goPage(${currentPage-1},event)" aria-label="Previous page">‹</button>`;
+  for (let p = 1; p <= totalPages; p++) {
+    pagHtml += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p},event)" aria-label="Page ${p}" ${p===currentPage?'aria-current="page"':''}>${p}</button>`;
+  }
+  pagHtml += `<button class="page-btn" ${currentPage===totalPages?'disabled':''} onclick="goPage(${currentPage+1},event)" aria-label="Next page">›</button>`;
+  pag.innerHTML = pagHtml;
+
+  // Store filtered data for pagination
+  window._filteredCases = data;
+}
+
+function goPage(p, e) {
+  currentPage = p;
+  renderCases(window._filteredCases || ALL_CASES);
+  document.getElementById('cases-table-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearFilters() {
+  document.getElementById('case-search').value = '';
+  document.getElementById('status-filter').value = '';
+  filterCases();
+}
+</script>
+</body>
+</html>

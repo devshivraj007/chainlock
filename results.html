@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results Dashboard — DVR/NVR Forensic Recovery Tool</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<div id="toast-region" aria-live="polite" aria-atomic="false"></div>
+<div id="topbar-slot"></div>
+<div id="header-slot"></div>
+<div id="dataset-bar-slot"></div>
+
+<!-- Frame detail drawer -->
+<div id="frame-drawer" class="drawer hidden" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+  <div class="flex justify-between items-center mb-6">
+    <h2 id="drawer-title" style="font-size:var(--text-lg)">Frame Detail</h2>
+    <button class="btn btn-ghost btn-sm" onclick="closeDrawer()" aria-label="Close frame detail">✕ Close</button>
+  </div>
+  <div id="drawer-content"></div>
+</div>
+<div id="drawer-backdrop" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:900" onclick="closeDrawer()"></div>
+
+<main id="main-content" class="page-content" tabindex="-1">
+  <div class="container">
+
+    <div id="breadcrumb-slot"></div>
+
+    <div class="flex justify-between items-center mb-6" style="flex-wrap:wrap;gap:var(--space-4)">
+      <div>
+        <h1>Results Dashboard</h1>
+        <p id="case-id-display" class="text-muted font-mono" style="font-size:var(--text-xs);margin-top:4px">Case ID: —</p>
+      </div>
+      <div style="display:flex;gap:var(--space-3);flex-wrap:wrap">
+        <span class="readonly-banner"><span aria-hidden="true">🔒</span> Read-only</span>
+        <a id="btn-custody" href="#" class="btn btn-secondary btn-sm">⛓️ Chain of Custody</a>
+        <a id="btn-report" href="#" class="btn btn-primary btn-sm">📄 View Report</a>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <section aria-labelledby="summary-heading" class="mb-8">
+      <h2 id="summary-heading" class="visually-hidden">Summary</h2>
+      <div class="summary-cards" id="summary-cards">
+        <!-- Skeleton loading -->
+        <div class="skeleton" style="height:100px;border-radius:var(--radius-card)"></div>
+        <div class="skeleton" style="height:100px;border-radius:var(--radius-card)"></div>
+        <div class="skeleton" style="height:100px;border-radius:var(--radius-card)"></div>
+        <div class="skeleton" style="height:100px;border-radius:var(--radius-card)"></div>
+      </div>
+    </section>
+
+    <!-- Evidence hash -->
+    <div class="card mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 style="font-size:var(--text-md)">Evidence SHA-256</h2>
+        <span class="status-chip status-success"><span aria-hidden="true">✅</span> Hash verified</span>
+      </div>
+      <div class="hash-block">
+        <span class="hash-value" id="results-hash">a3f4e8c1d9b2e7a0f5c8d3b6e1a4f7c0d9b2e5a8f1c4d7b0e3a6f9c2d5b8e1a4</span>
+        <button class="copy-btn" onclick="copyToClipboard(document.getElementById('results-hash').textContent, this)">Copy</button>
+      </div>
+    </div>
+
+    <!-- Per-channel timeline -->
+    <section class="card mb-6" aria-labelledby="timeline-heading">
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="timeline-heading" style="font-size:var(--text-md)">Per-channel Timeline</h2>
+        <div style="display:flex;gap:var(--space-2)">
+          <button class="btn btn-ghost btn-sm" id="zoom-in" aria-label="Zoom in" onclick="adjustZoom(0.5)">🔍+</button>
+          <button class="btn btn-ghost btn-sm" id="zoom-out" aria-label="Zoom out" onclick="adjustZoom(-0.5)">🔍−</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Reset zoom" onclick="resetZoom()">⊙ Reset</button>
+        </div>
+      </div>
+
+      <!-- Filter -->
+      <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-4);flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" onclick="filterTimeline('all')" aria-pressed="true" id="tf-all">All</button>
+        <button class="btn btn-sm btn-secondary" onclick="filterTimeline('found')" aria-pressed="false" id="tf-found">
+          <span style="background:rgba(20,108,46,0.7);width:10px;height:10px;border-radius:2px;display:inline-block" aria-hidden="true"></span>
+          Found
+        </button>
+        <button class="btn btn-sm btn-secondary" onclick="filterTimeline('deleted')" aria-pressed="false" id="tf-deleted">
+          <span style="background:rgba(11,61,145,0.7);width:10px;height:10px;border-radius:2px;display:inline-block" aria-hidden="true"></span>
+          Recovered-deleted
+        </button>
+        <button class="btn btn-sm btn-secondary" onclick="filterTimeline('tamper')" aria-pressed="false" id="tf-tamper">
+          <span style="background:rgba(180,35,24,0.7);width:10px;height:10px;border-radius:2px;display:inline-block" aria-hidden="true"></span>
+          Tamper
+        </button>
+      </div>
+
+      <div class="timeline-container" id="timeline-container" tabindex="0" aria-label="Per-channel timeline. Use arrow keys to scroll.">
+        <div id="timeline-inner" style="min-width:800px;transition:transform 200ms ease">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+      <!-- Table alternative for charts -->
+      <details style="margin-top:var(--space-4)">
+        <summary style="cursor:pointer;font-size:var(--text-xs);color:var(--color-primary);font-weight:600">
+          📊 View as table (accessibility alternative)
+        </summary>
+        <div class="table-container mt-4" id="timeline-table-container"></div>
+      </details>
+    </section>
+
+    <!-- Concordance view -->
+    <section class="card mb-6" aria-labelledby="concordance-heading">
+      <h2 id="concordance-heading" style="font-size:var(--text-md);margin-bottom:var(--space-4)">Concordance View</h2>
+      <p class="text-muted mb-4" style="font-size:var(--text-xs)">Comparison of frames found by index method vs carving method.</p>
+
+      <!-- Summary bar -->
+      <div class="concordance-bar" id="conc-bar" role="img" aria-label="Concordance summary bar" aria-describedby="conc-legend"></div>
+      <div class="conc-legend mb-6" id="conc-legend" role="list">
+        <div class="conc-legend-item" role="listitem"><div class="conc-swatch" style="background:var(--color-success)"></div><span>Agree (both methods)</span></div>
+        <div class="conc-legend-item" role="listitem"><div class="conc-swatch" style="background:var(--color-info)"></div><span>Recovered-deleted (carving only)</span></div>
+        <div class="conc-legend-item" role="listitem"><div class="conc-swatch" style="background:var(--color-warning)"></div><span>Index-only</span></div>
+        <div class="conc-legend-item" role="listitem"><div class="conc-swatch" style="background:var(--color-error)"></div><span>Unindexed</span></div>
+      </div>
+
+      <!-- Sortable, filterable table -->
+      <div class="filter-bar" style="margin-bottom:var(--space-4)">
+        <input type="search" class="form-input" id="conc-search" placeholder="Filter by channel, offset…" aria-label="Filter concordance table" oninput="filterConcordance(this.value)" style="max-width:300px">
+        <select class="form-select" id="conc-filter-type" aria-label="Filter by concordance type" onchange="filterConcordance(document.getElementById('conc-search').value)" style="max-width:200px">
+          <option value="">All types</option>
+          <option value="agree">Agree</option>
+          <option value="deleted">Recovered-deleted</option>
+          <option value="index">Index-only</option>
+          <option value="unindexed">Unindexed</option>
+        </select>
+      </div>
+
+      <div class="table-container" id="concordance-table-container" aria-live="polite"></div>
+    </section>
+
+    <!-- Tamper flags -->
+    <section class="card mb-6" aria-labelledby="tamper-heading">
+      <h2 id="tamper-heading" style="font-size:var(--text-md);margin-bottom:var(--space-4)">
+        <span aria-hidden="true">🛡️</span> Tamper Flags
+      </h2>
+      <div class="tamper-list" id="tamper-list"></div>
+    </section>
+
+    <!-- Device log -->
+    <section class="card" aria-labelledby="device-log-heading">
+      <h2 id="device-log-heading" style="font-size:var(--text-md);margin-bottom:var(--space-4)">Device Log Activity Timeline</h2>
+      <div id="device-log-content"></div>
+    </section>
+
+  </div>
+</main>
+
+<div id="footer-slot"></div>
+
+<script src="js/app.js"></script>
+<script>
+// Demo data
+const DEMO = {
+  caseId: 'DEMO-001',
+  totalFrames: 21847,
+  recovered: 18432,
+  tamperFlags: 3,
+  channels: 8,
+  hash: 'a3f4e8c1d9b2e7a0f5c8d3b6e1a4f7c0d9b2e5a8f1c4d7b0e3a6f9c2d5b8e1a4',
+  concordance: {
+    agree: 15200,
+    deleted: 2847,
+    index: 415,
+    unindexed: 385
+  },
+  channels: Array.from({ length: 8 }, (_, i) => ({
+    id: `CH-${String(i+1).padStart(2,'0')}`,
+    frames: Math.floor(Math.random() * 3000) + 1000,
+    segments: [
+      { start: 0.05, end: 0.35, type: 'found' },
+      { start: 0.35, end: 0.5, type: 'deleted' },
+      { start: 0.5, end: 0.55, type: 'tamper' },
+      { start: 0.55, end: 0.9, type: 'found' },
+    ]
+  })),
+  tamperFlags: [
+    { id: 'TF-001', title: 'Recording Discontinuity — Channel 3', desc: 'A 47-minute gap was detected in Channel 3 between 14:23 and 15:10. This may indicate deliberate deletion or device power failure. The gap does not appear in the device activity log, which is unusual.', severity: 'high' },
+    { id: 'TF-002', title: 'Timestamp Rollback — Channel 5', desc: 'Timestamps in Channel 5 show a backward jump of 2 hours at offset 0x3A4F8000. This is a strong indicator of tampering as legitimate hardware does not roll back timestamps.', severity: 'high' },
+    { id: 'TF-003', title: 'Frame Header Corruption — Channels 1, 2', desc: 'Seventeen frame headers contain invalid magic bytes. This may be due to partial overwrite or storage media failure. Frames were recovered via carving but authenticity cannot be guaranteed.', severity: 'medium' }
+  ],
+  deviceLog: [
+    { time: '2026-09-15 08:00:12', event: 'System boot', severity: 'info' },
+    { time: '2026-09-15 08:00:45', event: 'Recording started — all 8 channels', severity: 'info' },
+    { time: '2026-09-15 14:23:01', event: 'Recording stopped — Channel 3 (reason: unknown)', severity: 'warning' },
+    { time: '2026-09-15 15:10:33', event: 'Recording restarted — Channel 3', severity: 'warning' },
+    { time: '2026-09-15 18:44:22', event: 'Playback initiated by local user', severity: 'info' },
+    { time: '2026-09-15 21:30:00', event: 'System shutdown', severity: 'info' },
+    { time: '2026-09-16 07:55:11', event: 'System boot', severity: 'info' },
+    { time: '2026-09-16 09:12:07', event: 'USB device connected (file copy attempt)', severity: 'error' },
+    { time: '2026-09-16 09:14:55', event: 'USB device disconnected', severity: 'error' },
+    { time: '2026-09-16 22:10:00', event: 'System shutdown', severity: 'info' },
+  ]
+};
+
+let concordanceData = [];
+let zoomLevel = 1;
+let activeFilter = 'all';
+
+(async () => {
+  await initApp('cases');
+
+  const params = new URLSearchParams(location.search);
+  const caseId = params.get('case') || 'DEMO-001';
+
+  document.getElementById('case-id-display').textContent = `Case ID: ${caseId}`;
+  document.getElementById('breadcrumb-slot').innerHTML = buildBreadcrumb([
+    { href: 'index.html', label: 'Home' },
+    { href: 'cases.html', label: 'Cases' },
+    { href: `results.html?case=${caseId}`, label: 'Results' }
+  ]);
+  document.getElementById('dataset-bar-slot').innerHTML = buildDatasetBar('SYNTHETIC');
+  document.getElementById('btn-custody').href = `custody.html?case=${caseId}`;
+  document.getElementById('btn-report').href = `report.html?case=${caseId}`;
+
+  // Populate summary cards
+  const total = DEMO.concordance.agree + DEMO.concordance.deleted + DEMO.concordance.index + DEMO.concordance.unindexed;
+  document.getElementById('summary-cards').innerHTML = `
+    <div class="summary-card">
+      <div class="summary-number">${fmtNum(total)}</div>
+      <div class="summary-label">Total Frames Found</div>
+    </div>
+    <div class="summary-card success-border">
+      <div class="summary-number" style="color:var(--color-success)">${fmtNum(DEMO.concordance.agree + DEMO.concordance.deleted)}</div>
+      <div class="summary-label">Frames Recovered</div>
+    </div>
+    <div class="summary-card error-border">
+      <div class="summary-number" style="color:var(--color-error)">${DEMO.tamperFlags.length}</div>
+      <div class="summary-label">Tamper Flags</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-number">${DEMO.channels.length}</div>
+      <div class="summary-label">Channels</div>
+    </div>
+  `;
+
+  // Timeline
+  renderTimeline();
+
+  // Concordance bar
+  const concTotal = total;
+  document.getElementById('conc-bar').innerHTML = `
+    <div class="conc-seg conc-agree" style="width:${(DEMO.concordance.agree/concTotal*100).toFixed(1)}%" title="Agree: ${DEMO.concordance.agree}" aria-label="Agree: ${DEMO.concordance.agree}">
+      ${Math.round(DEMO.concordance.agree/concTotal*100)}%
+    </div>
+    <div class="conc-seg conc-deleted" style="width:${(DEMO.concordance.deleted/concTotal*100).toFixed(1)}%" title="Recovered-deleted: ${DEMO.concordance.deleted}" aria-label="Recovered-deleted: ${DEMO.concordance.deleted}">
+      ${Math.round(DEMO.concordance.deleted/concTotal*100)}%
+    </div>
+    <div class="conc-seg conc-index" style="width:${(DEMO.concordance.index/concTotal*100).toFixed(1)}%" title="Index-only: ${DEMO.concordance.index}" aria-label="Index-only: ${DEMO.concordance.index}">
+      ${Math.round(DEMO.concordance.index/concTotal*100)}%
+    </div>
+    <div class="conc-seg conc-unindexed" style="width:${(DEMO.concordance.unindexed/concTotal*100).toFixed(1)}%" title="Unindexed: ${DEMO.concordance.unindexed}" aria-label="Unindexed: ${DEMO.concordance.unindexed}">
+      ${Math.round(DEMO.concordance.unindexed/concTotal*100)}%
+    </div>
+  `;
+
+  // Build concordance data
+  concordanceData = [];
+  for (let i = 0; i < 50; i++) {
+    const types = ['agree','agree','agree','agree','deleted','deleted','index','unindexed'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const ch = `CH-${String(Math.floor(Math.random()*8)+1).padStart(2,'0')}`;
+    const offset = `0x${(Math.random()*0xFFFFFFF|0).toString(16).toUpperCase().padStart(8,'0')}`;
+    concordanceData.push({ id: `FRM-${String(i+1).padStart(4,'0')}`, channel: ch, offset, type,
+      index: type !== 'unindexed', carve: type !== 'index', frames: Math.floor(Math.random()*120)+10 });
+  }
+  renderConcordanceTable(concordanceData);
+
+  // Tamper flags
+  document.getElementById('tamper-list').innerHTML = DEMO.tamperFlags.map(f => `
+    <div class="tamper-item" role="alert" aria-labelledby="tf-${f.id}">
+      <div class="tamper-item-icon" aria-hidden="true">${f.severity === 'high' ? '🔴' : '🟡'}</div>
+      <div class="tamper-item-text">
+        <h4 id="tf-${f.id}">${f.id} — ${f.title}</h4>
+        <p>${f.desc}</p>
+        <span class="status-chip ${f.severity==='high'?'status-error':'status-warning'}" style="margin-top:8px;display:inline-flex">
+          <span aria-hidden="true">${f.severity==='high'?'❌':'⚠️'}</span> ${f.severity} severity
+        </span>
+      </div>
+    </div>
+  `).join('');
+
+  // Device log
+  document.getElementById('device-log-content').innerHTML = `
+    <div class="table-container">
+      <table>
+        <caption class="table-sr-caption">Device activity log entries</caption>
+        <thead><tr><th>Timestamp</th><th>Event</th><th>Severity</th></tr></thead>
+        <tbody>
+          ${DEMO.deviceLog.map(e => `
+            <tr>
+              <td class="font-mono" style="font-size:11px;white-space:nowrap">${e.time}</td>
+              <td>${e.event}</td>
+              <td>
+                <span class="status-chip ${e.severity==='error'?'status-error':e.severity==='warning'?'status-warning':'status-info'}">
+                  <span aria-hidden="true">${e.severity==='error'?'❌':e.severity==='warning'?'⚠️':'ℹ️'}</span>
+                  ${e.severity}
+                </span>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+})();
+
+function renderTimeline() {
+  const inner = document.getElementById('timeline-inner');
+  inner.innerHTML = DEMO.channels.map(ch => `
+    <div style="margin-bottom:var(--space-3)">
+      <div class="timeline-channel-label">${ch.id} — ${fmtNum(ch.frames)} frames</div>
+      <div class="timeline-track" style="width:${Math.round(800 * zoomLevel)}px" role="img" aria-label="${ch.id} timeline">
+        ${ch.segments.filter(s => activeFilter === 'all' || s.type === activeFilter).map(s => `
+          <div class="timeline-segment ${s.type}" 
+               style="left:${s.start*100}%;width:${(s.end-s.start)*100}%"
+               title="${s.type} (${Math.round(s.start*100)}%–${Math.round(s.end*100)}%)"
+               role="button" tabindex="0"
+               onclick="openFrameDrawer('${ch.id}','${s.type}','${s.start}','${s.end}')"
+               onkeydown="if(event.key==='Enter'||event.key===' ')openFrameDrawer('${ch.id}','${s.type}','${s.start}','${s.end}')"
+               aria-label="${ch.id} ${s.type} segment. Click to view detail.">
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  // Table alternative
+  document.getElementById('timeline-table-container').innerHTML = `
+    <table>
+      <caption>Timeline data by channel</caption>
+      <thead><tr><th>Channel</th><th>Frames</th><th>Found %</th><th>Deleted %</th><th>Tamper %</th></tr></thead>
+      <tbody>
+        ${DEMO.channels.map(ch => `
+          <tr>
+            <td>${ch.id}</td>
+            <td>${fmtNum(ch.frames)}</td>
+            <td>${(ch.segments.filter(s=>s.type==='found').reduce((a,s)=>a+(s.end-s.start),0)*100).toFixed(0)}%</td>
+            <td>${(ch.segments.filter(s=>s.type==='deleted').reduce((a,s)=>a+(s.end-s.start),0)*100).toFixed(0)}%</td>
+            <td>${(ch.segments.filter(s=>s.type==='tamper').reduce((a,s)=>a+(s.end-s.start),0)*100).toFixed(0)}%</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
+
+function adjustZoom(delta) {
+  zoomLevel = Math.max(0.5, Math.min(3, zoomLevel + delta));
+  renderTimeline();
+}
+function resetZoom() { zoomLevel = 1; renderTimeline(); }
+function filterTimeline(f) {
+  activeFilter = f;
+  document.querySelectorAll('[id^="tf-"]').forEach(btn => btn.setAttribute('aria-pressed','false'));
+  document.getElementById(`tf-${f}`)?.setAttribute('aria-pressed','true');
+  renderTimeline();
+}
+
+function renderConcordanceTable(data) {
+  const typeBadge = type => {
+    const map = { agree: 'status-success ✅ Agree', deleted: 'status-info 🔵 Recovered-deleted', index: 'status-warning ⚠️ Index-only', unindexed: 'status-error ❌ Unindexed' };
+    const [cls, icon, ...label] = (map[type] || 'status-info ❓ Unknown').split(' ');
+    return `<span class="status-chip ${cls}"><span aria-hidden="true">${icon}</span> ${label.join(' ')}</span>`;
+  };
+  document.getElementById('concordance-table-container').innerHTML = `
+    <table>
+      <caption class="table-sr-caption">Concordance table — ${data.length} rows</caption>
+      <thead>
+        <tr>
+          <th><button class="sort-btn" onclick="sortConc('id')">Frame ID ↕</button></th>
+          <th><button class="sort-btn" onclick="sortConc('channel')">Channel ↕</button></th>
+          <th>Offset</th>
+          <th>Frames</th>
+          <th>Index</th>
+          <th>Carve</th>
+          <th><button class="sort-btn" onclick="sortConc('type')">Type ↕</button></th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(r => `
+          <tr>
+            <td class="font-mono" style="font-size:11px">${r.id}</td>
+            <td>${r.channel}</td>
+            <td class="font-mono" style="font-size:11px">${r.offset}</td>
+            <td>${r.frames}</td>
+            <td><span aria-label="${r.index ? 'Yes' : 'No'}">${r.index ? '✅' : '—'}</span></td>
+            <td><span aria-label="${r.carve ? 'Yes' : 'No'}">${r.carve ? '✅' : '—'}</span></td>
+            <td>${typeBadge(r.type)}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="openFrameDrawer('${r.channel}','${r.type}','0','1','${r.id}','${r.offset}')">Detail</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
+
+let concSortKey = null, concSortAsc = true;
+function sortConc(key) {
+  if (concSortKey === key) concSortAsc = !concSortAsc;
+  else { concSortKey = key; concSortAsc = true; }
+  const sorted = [...concordanceData].sort((a, b) => {
+    if (a[key] < b[key]) return concSortAsc ? -1 : 1;
+    if (a[key] > b[key]) return concSortAsc ? 1 : -1;
+    return 0;
+  });
+  renderConcordanceTable(filtered(sorted, document.getElementById('conc-search').value, document.getElementById('conc-filter-type').value));
+}
+
+function filtered(data, q, type) {
+  let d = data;
+  if (type) d = d.filter(r => r.type === type);
+  if (q) { const lq = q.toLowerCase(); d = d.filter(r => r.id.toLowerCase().includes(lq) || r.channel.toLowerCase().includes(lq) || r.offset.toLowerCase().includes(lq)); }
+  return d;
+}
+
+function filterConcordance(q) {
+  const type = document.getElementById('conc-filter-type').value;
+  renderConcordanceTable(filtered(concordanceData, q, type));
+}
+
+function openFrameDrawer(channel, type, start, end, frameId, offset) {
+  const drawer = document.getElementById('frame-drawer');
+  const backdrop = document.getElementById('drawer-backdrop');
+  const DEMO_HASH = 'a3f4e8c1d9b2e7a0f5c8d3b6e1a4f7c0d9b2e5a8f1c4d7b0e3a6f9c2d5b8e1a4';
+  document.getElementById('drawer-content').innerHTML = `
+    <dl style="display:flex;flex-direction:column;gap:var(--space-4)">
+      <div><dt class="form-label">Frame ID</dt><dd class="font-mono" style="margin-top:4px">${frameId || 'FRM-MULTI'}</dd></div>
+      <div><dt class="form-label">Channel</dt><dd style="margin-top:4px">${channel}</dd></div>
+      <div><dt class="form-label">File Offset</dt><dd class="font-mono" style="margin-top:4px">${offset || '0x' + (Math.random()*0xFFFFFFF|0).toString(16).toUpperCase().padStart(8,'0')}</dd></div>
+      <div><dt class="form-label">Start Timestamp</dt><dd style="margin-top:4px">2026-09-15 ${Math.floor(start*24).toString().padStart(2,'0')}:${Math.floor(start*60%60).toString().padStart(2,'0')}:00</dd></div>
+      <div><dt class="form-label">End Timestamp</dt><dd style="margin-top:4px">2026-09-15 ${Math.floor(end*24).toString().padStart(2,'0')}:${Math.floor(end*60%60).toString().padStart(2,'0')}:59</dd></div>
+      <div>
+        <dt class="form-label">Found By</dt>
+        <dd style="margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
+          ${type !== 'unindexed' ? '<span class="status-chip status-success"><span aria-hidden="true">✅</span> Index</span>' : ''}
+          ${type !== 'index' ? '<span class="status-chip status-info"><span aria-hidden="true">✅</span> Carving</span>' : ''}
+        </dd>
+      </div>
+      <div>
+        <dt class="form-label">Concordance Type</dt>
+        <dd style="margin-top:4px">
+          <span class="status-chip ${type==='agree'?'status-success':type==='deleted'?'status-info':type==='index'?'status-warning':'status-error'}">
+            <span aria-hidden="true">${type==='agree'?'✅':type==='deleted'?'🔵':type==='index'?'⚠️':'❌'}</span>
+            ${type}
+          </span>
+        </dd>
+      </div>
+      <div>
+        <dt class="form-label">Verification Status</dt>
+        <dd style="margin-top:4px">
+          <span class="status-chip ${type==='tamper'?'status-error':'status-success'}">
+            <span aria-hidden="true">${type==='tamper'?'❌':'✅'}</span>
+            ${type==='tamper'?'Tamper detected':'Verified'}
+          </span>
+        </dd>
+      </div>
+      <div>
+        <dt class="form-label">Segment SHA-256</dt>
+        <dd style="margin-top:4px">
+          <div class="hash-block">
+            <span class="hash-value" id="drawer-hash">${DEMO_HASH.slice(0,32)}…</span>
+            <button class="copy-btn" onclick="copyToClipboard('${DEMO_HASH}', this)">Copy</button>
+          </div>
+        </dd>
+      </div>
+    </dl>
+  `;
+  drawer.classList.remove('hidden');
+  backdrop.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  drawer.querySelector('.btn').focus();
+}
+
+function closeDrawer() {
+  document.getElementById('frame-drawer').classList.add('hidden');
+  document.getElementById('drawer-backdrop').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// Keyboard: close on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+</script>
+</body>
+</html>

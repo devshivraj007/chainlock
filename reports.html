@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — DVR/NVR Forensic Recovery Tool</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<div id="toast-region" aria-live="polite" aria-atomic="false"></div>
+<div id="topbar-slot"></div>
+<div id="header-slot"></div>
+<div id="dataset-bar-slot"></div>
+
+<main id="main-content" class="page-content" tabindex="-1">
+  <div class="container">
+
+    <div id="breadcrumb-slot"></div>
+    <h1 class="mb-6">Reports</h1>
+
+    <div class="filter-bar mb-6">
+      <input type="search" class="form-input" placeholder="Search by Case ID or name…" aria-label="Search reports" oninput="filterReports(this.value)">
+      <select class="form-select" aria-label="Filter by signature status" onchange="filterBySig(this.value)">
+        <option value="">All</option>
+        <option value="signed">Signed</option>
+        <option value="unsigned">Unsigned</option>
+      </select>
+    </div>
+
+    <div class="table-container" id="reports-table">
+      <table>
+        <caption class="table-sr-caption">Generated reports</caption>
+        <thead>
+          <tr>
+            <th>Case ID</th>
+            <th>Case Name</th>
+            <th>Generated</th>
+            <th>Size</th>
+            <th>Signature</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reports-tbody"></tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+<div id="footer-slot"></div>
+
+<script src="js/app.js"></script>
+<script>
+const REPORTS = Array.from({ length: 12 }, (_, i) => ({
+  caseId: `CASE-${String(i+1).padStart(4,'0')}`,
+  name: ['Hikvision DVR Seizure','CP Plus NVR Investigation','Synthetic Test Image','Dahua Analysis'][i%4],
+  generated: new Date(Date.now() - i * 3600000 * 24).toISOString(),
+  size: (1.1 + Math.random() * 3).toFixed(1) + ' MB',
+  signed: i % 3 !== 0
+}));
+
+let filtered = REPORTS;
+
+(async () => {
+  await initApp('reports');
+  document.getElementById('breadcrumb-slot').innerHTML = buildBreadcrumb([
+    { href: 'index.html', label: 'Home' },
+    { href: 'reports.html', label: 'Reports' }
+  ]);
+  document.getElementById('dataset-bar-slot').innerHTML = buildDatasetBar('SYNTHETIC');
+  renderReports(REPORTS);
+})();
+
+function renderReports(data) {
+  document.getElementById('reports-tbody').innerHTML = data.map(r => `
+    <tr>
+      <td class="font-mono" style="font-size:11px"><a href="results.html?case=${r.caseId}">${r.caseId}</a></td>
+      <td>${r.name}</td>
+      <td style="font-size:11px;white-space:nowrap">${fmtDate(r.generated, getCurrentLang())}</td>
+      <td style="font-size:11px">${r.size}</td>
+      <td>
+        <span class="status-chip ${r.signed ? 'status-success' : 'status-warning'}">
+          <span aria-hidden="true">${r.signed ? '✅' : '⚠️'}</span>
+          ${r.signed ? 'Signed' : 'Unsigned'}
+        </span>
+      </td>
+      <td>
+        <div style="display:flex;gap:8px">
+          <a href="report.html?case=${r.caseId}" class="btn btn-ghost btn-sm">View</a>
+          <a href="verify.html" class="btn btn-ghost btn-sm">Verify</a>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterReports(q) {
+  const lq = q.toLowerCase();
+  filtered = REPORTS.filter(r => r.caseId.toLowerCase().includes(lq) || r.name.toLowerCase().includes(lq));
+  renderReports(filtered);
+}
+
+function filterBySig(v) {
+  if (!v) renderReports(REPORTS);
+  else renderReports(REPORTS.filter(r => v === 'signed' ? r.signed : !r.signed));
+}
+</script>
+</body>
+</html>

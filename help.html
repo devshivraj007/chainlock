@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help, Limitations & Accessibility — DVR/NVR Forensic Recovery Tool</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<div id="toast-region" aria-live="polite" aria-atomic="false"></div>
+<div id="topbar-slot"></div>
+<div id="header-slot"></div>
+<div id="dataset-bar-slot"></div>
+
+<main id="main-content" class="page-content" tabindex="-1">
+  <div class="container">
+
+    <div id="breadcrumb-slot"></div>
+
+    <!-- Tab nav -->
+    <div role="tablist" aria-label="Help sections" class="mb-8" style="display:flex;gap:0;border-bottom:2px solid var(--color-border)">
+      <button role="tab" id="tab-help" aria-selected="true" aria-controls="panel-help"
+        class="btn btn-ghost" style="border-bottom:3px solid var(--color-primary);border-radius:0;color:var(--color-primary)"
+        onclick="switchTab('help')">Help & Documentation</button>
+      <button role="tab" id="tab-limitations" aria-selected="false" aria-controls="panel-limitations"
+        class="btn btn-ghost" style="border-radius:0;border-bottom:3px solid transparent"
+        onclick="switchTab('limitations')">Limitations</button>
+      <button role="tab" id="tab-accessibility" aria-selected="false" aria-controls="panel-accessibility"
+        class="btn btn-ghost" style="border-radius:0;border-bottom:3px solid transparent"
+        onclick="switchTab('accessibility')">Accessibility Statement</button>
+    </div>
+
+    <!-- Help panel -->
+    <div id="panel-help" role="tabpanel" aria-labelledby="tab-help">
+      <h1 class="mb-6">Help & Documentation</h1>
+
+      <div style="display:grid;grid-template-columns:250px 1fr;gap:var(--space-8)" id="help-layout">
+        <!-- TOC -->
+        <aside aria-label="Help table of contents">
+          <nav>
+            <ul style="list-style:none;position:sticky;top:80px;display:flex;flex-direction:column;gap:var(--space-2)">
+              <li><a href="#getting-started">Getting started</a></li>
+              <li><a href="#new-case">Creating a case</a></li>
+              <li><a href="#analysis">Analysis pipeline</a></li>
+              <li><a href="#results">Reading results</a></li>
+              <li><a href="#concordance">Concordance view</a></li>
+              <li><a href="#custody">Chain of custody</a></li>
+              <li><a href="#verify">Verifying reports</a></li>
+              <li><a href="#keyboard">Keyboard shortcuts</a></li>
+            </ul>
+          </nav>
+        </aside>
+
+        <!-- Content -->
+        <div>
+          <section id="getting-started" class="mb-8">
+            <h2 class="mb-4">Getting Started</h2>
+            <p class="mb-4">ForensicDVR is a court-ready forensic recovery tool for DVR and NVR evidence. It performs block-level, read-only acquisition and applies two independent recovery methods to maximise frame recovery while maintaining full chain of custody.</p>
+            <div class="readonly-banner mb-4">
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              The tool operates exclusively in <strong>read-only mode</strong>. The evidence image is never modified.
+            </div>
+          </section>
+
+          <section id="new-case" class="mb-8">
+            <h2 class="mb-4">Creating a New Case</h2>
+            <div class="help-accordion">
+              <div class="accordion-item">
+                <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+                  What information do I need to create a case?
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="accordion-body">
+                  <p>You will need: Case ID (or leave blank for auto-generation), FIR number, case name, court/jurisdiction, investigating officer name, unit/police station, date of seizure, and the evidence image path or URL.</p>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+                  What is a dataset label and why is it required?
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="accordion-body">
+                  <p>The dataset label classifies the evidence image source:</p>
+                  <ul style="margin-top:8px;padding-left:20px">
+                    <li><strong>SYNTHETIC</strong> — Generated or simulated data (for testing)</li>
+                    <li><strong>PUBLIC-EXPORT</strong> — A publicly released dataset</li>
+                    <li><strong>REAL-DISK</strong> — An actual seized evidence disk</li>
+                  </ul>
+                  <p style="margin-top:8px">This label is shown on every page and embedded in every report for transparency.</p>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+                  What image formats are supported?
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="accordion-body">
+                  <p>The tool accepts raw disk images (.img, .dd), E01 (EnCase), Ex01, AFF4, and direct block device paths (e.g. /dev/sdb). The format is auto-detected unless you specify a vendor.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="analysis" class="mb-8">
+            <h2 class="mb-4">Analysis Pipeline</h2>
+            <ol style="padding-left:20px;display:flex;flex-direction:column;gap:var(--space-3)">
+              <li><strong>Acquire Image</strong> — Block-level read. Write-block is confirmed. SHA-256 is computed and locked.</li>
+              <li><strong>Identify Format</strong> — The DVR/NVR proprietary format is detected.</li>
+              <li><strong>Index-based Recovery</strong> — File allocation tables and index structures are parsed.</li>
+              <li><strong>Carve-based Recovery</strong> — Signature-based carving finds deleted/overwritten frames.</li>
+              <li><strong>Tamper Checks</strong> — Hash verification, discontinuity detection, timestamp anomaly analysis.</li>
+              <li><strong>Generate Report</strong> — Court-admissible PDF with chain of custody.</li>
+            </ol>
+          </section>
+
+          <section id="keyboard" class="mb-8">
+            <h2 class="mb-4">Keyboard Shortcuts</h2>
+            <div class="table-container">
+              <table>
+                <thead><tr><th>Key</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td class="font-mono">Alt+1</td><td>Go to Home</td></tr>
+                  <tr><td class="font-mono">Alt+2</td><td>New Case</td></tr>
+                  <tr><td class="font-mono">Alt+3</td><td>Cases list</td></tr>
+                  <tr><td class="font-mono">Alt+4</td><td>Verify</td></tr>
+                  <tr><td class="font-mono">Escape</td><td>Close drawer / dialog</td></tr>
+                  <tr><td class="font-mono">Tab</td><td>Move focus forward</td></tr>
+                  <tr><td class="font-mono">Shift+Tab</td><td>Move focus backward</td></tr>
+                  <tr><td class="font-mono">Enter / Space</td><td>Activate focused element</td></tr>
+                  <tr><td class="font-mono">Arrow keys</td><td>Navigate timeline (when focused)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Limitations panel -->
+    <div id="panel-limitations" role="tabpanel" aria-labelledby="tab-limitations" class="hidden">
+      <h1 class="mb-6">Limitations</h1>
+      <div class="card mb-6" style="border-left:4px solid var(--color-warning)">
+        <h2 style="color:var(--color-warning);font-size:var(--text-md);margin-bottom:var(--space-4)">
+          <span aria-hidden="true">⚠️</span> Important: Read before use in court
+        </h2>
+        <p>This tool is a prototype developed for SIH26150. It must not be used as the sole basis for any criminal conviction or legal determination without review by a qualified forensic expert.</p>
+      </div>
+
+      <div class="help-accordion">
+        <div class="accordion-item">
+          <button class="accordion-header" aria-expanded="true" onclick="toggleAccordion(this)">
+            Format support limitations
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-body open">
+            <ul style="padding-left:20px;display:flex;flex-direction:column;gap:8px">
+              <li>Encrypted DVR formats are not supported.</li>
+              <li>Proprietary firmware-level obfuscation may prevent recovery.</li>
+              <li>Formats from obscure or no-brand manufacturers may not be detected.</li>
+              <li>H.265/HEVC streams have limited index-recovery support (carving only).</li>
+            </ul>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+            Recovery guarantees
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-body">
+            <p>The tool cannot recover frames that have been physically overwritten by new recordings. Once storage sectors are reused, original data is unrecoverable without specialized lab equipment. The concordance view shows frames recovered by each method separately so the examiner can assess reliability.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+            Tamper detection limitations
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-body">
+            <p>Tamper flags indicate <em>anomalies</em>, not confirmed tampering. Power failures, firmware bugs, and storage media errors can produce identical patterns. Each tamper flag includes a plain-language explanation and the forensic examiner must form their own opinion.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+            This is a prototype
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-body">
+            <p>ForensicDVR is developed for SIH 2026 (Smart India Hackathon). It is not an official tool of any government agency. Reports generated by this prototype should be reviewed and countersigned by a qualified forensic expert before being submitted to a court.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accessibility panel -->
+    <div id="panel-accessibility" role="tabpanel" aria-labelledby="tab-accessibility" class="hidden">
+      <h1 class="mb-6">Accessibility Statement</h1>
+
+      <div class="card mb-6" style="border-left:4px solid var(--color-success)">
+        <h2 style="color:var(--color-success);font-size:var(--text-md);margin-bottom:var(--space-4)">
+          <span aria-hidden="true">♿</span> Our Commitment
+        </h2>
+        <p>ForensicDVR is committed to making this tool accessible to all users, including those who use assistive technologies. We aim to conform to WCAG 2.1 Level AA.</p>
+      </div>
+
+      <section class="mb-8">
+        <h2 class="mb-4">What we've implemented</h2>
+        <ul style="padding-left:20px;display:flex;flex-direction:column;gap:var(--space-3)">
+          <li>Visible 3px focus ring on all interactive elements</li>
+          <li>Full keyboard navigation — no keyboard traps</li>
+          <li>All images and icons have alt text or are marked as decorative</li>
+          <li>Colour is never the sole means of conveying information — every status has an icon and text label</li>
+          <li>Colour contrast meets 4.5:1 for text and 3:1 for UI components</li>
+          <li>ARIA live regions for toast notifications and dynamic content</li>
+          <li>Form fields have associated labels and descriptive error messages</li>
+          <li>Tables have captions and appropriate scope attributes</li>
+          <li>Modals and drawers trap focus appropriately</li>
+          <li>Prefers-reduced-motion respected — no auto-playing animations</li>
+          <li>Text can be resized to 200% without loss of content or functionality</li>
+          <li>Minimum 44×44px touch target size for all interactive elements</li>
+          <li>Hindi language text marked with lang="hi" for screen reader pronunciation</li>
+          <li>Skip to main content link at top of every page</li>
+          <li>High-contrast mode available via the top bar</li>
+          <li>Text size adjustment (A- / A / A+) persisted across sessions</li>
+          <li>All data charts have table alternatives</li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="mb-4">Known issues</h2>
+        <div class="card" style="border-left:4px solid var(--color-warning)">
+          <p>This is a prototype. Some complex interactive components (e.g. the timeline zoom) may not have complete keyboard support. We are actively working on improvements.</p>
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="mb-4">Feedback</h2>
+        <p>If you experience any accessibility issues, please contact us at <strong>accessibility@example.in</strong> (placeholder). We aim to respond within 2 working days.</p>
+      </section>
+
+      <section>
+        <h2 class="mb-4">Technical specification</h2>
+        <ul style="padding-left:20px">
+          <li>This tool uses semantic HTML5 with ARIA roles</li>
+          <li>Tested with keyboard navigation and screen reader announcements</li>
+          <li>Fonts: Noto Sans and Noto Sans Devanagari (self-hosted)</li>
+          <li>Prepared in accordance with WCAG 2.1 Level AA</li>
+        </ul>
+      </section>
+    </div>
+
+  </div>
+</main>
+
+<div id="footer-slot"></div>
+
+<script src="js/app.js"></script>
+<script>
+(async () => {
+  await initApp('help');
+  document.getElementById('breadcrumb-slot').innerHTML = buildBreadcrumb([
+    { href: 'index.html', label: 'Home' },
+    { href: 'help.html', label: 'Help' }
+  ]);
+  document.getElementById('dataset-bar-slot').innerHTML = buildDatasetBar('SYNTHETIC');
+
+  // Check URL hash for direct tab navigation
+  const hash = location.hash;
+  if (hash === '#limitations') switchTab('limitations');
+  else if (hash === '#accessibility') switchTab('accessibility');
+})();
+
+function switchTab(tab) {
+  ['help','limitations','accessibility'].forEach(t => {
+    document.getElementById(`tab-${t}`).setAttribute('aria-selected', t === tab);
+    document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== tab);
+    const btn = document.getElementById(`tab-${t}`);
+    btn.style.borderBottom = t === tab ? '3px solid var(--color-primary)' : '3px solid transparent';
+    btn.style.color = t === tab ? 'var(--color-primary)' : '';
+  });
+}
+
+function toggleAccordion(btn) {
+  const body = btn.nextElementSibling;
+  const isOpen = body.classList.toggle('open');
+  btn.setAttribute('aria-expanded', isOpen);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.altKey) {
+    if (e.key === '1') { e.preventDefault(); window.location.href = 'index.html'; }
+    if (e.key === '2') { e.preventDefault(); window.location.href = 'new-case.html'; }
+    if (e.key === '3') { e.preventDefault(); window.location.href = 'cases.html'; }
+    if (e.key === '4') { e.preventDefault(); window.location.href = 'verify.html'; }
+  }
+});
+</script>
+</body>
+</html>
