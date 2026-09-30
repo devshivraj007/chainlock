@@ -5,6 +5,30 @@
     {
       "src": "api/index.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "css/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "js/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "assets/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "fonts/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "pages/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -13,19 +37,31 @@
       "dest": "/api/index.py"
     },
     {
-      "src": "/(.*\\.(css|js|json|woff2?|ttf|svg|png|ico|webp|jpg|jpeg|gif))",
-      "dest": "/$1"
+      "src": "/css/(.*)",
+      "dest": "/css/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/js/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/fonts/(.*)",
+      "dest": "/fonts/$1"
+    },
+    {
+      "src": "/pages/(.*)",
+      "dest": "/pages/$1"
     },
     {
       "src": "/",
       "dest": "/index.html"
     },
     {
-      "src": "/([^.]+)\\.html",
-      "dest": "/$1.html"
-    },
-    {
-      "src": "/([^.]+)",
+      "src": "/([a-zA-Z0-9_-]+)",
       "dest": "/$1.html"
     }
   ]
